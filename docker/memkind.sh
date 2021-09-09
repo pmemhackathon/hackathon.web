@@ -1,9 +1,12 @@
 #!/bin/bash -ex
 
 git clone https://github.com/memkind/memkind
-cd memkind
-git checkout v1.9.0
-./build.sh --prefix=/usr
-sudo make install
-cd ..
+pushd memkind
+
+./autogen.sh
+./configure --prefix=/usr
+make -j$(nproc)
+make -j$(nproc) install
+
+popd
 rm -r memkind

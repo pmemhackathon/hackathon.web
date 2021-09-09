@@ -1,11 +1,11 @@
 #!/bin/bash -ex
 
 git clone https://github.com/pmem/pmemkv
-cd pmemkv
-mkdir build
-cd build
+mkdir -p pmemkv/build
+pushd pmemkv/build
+
 cmake .. -DCMAKE_INSTALL_PREFIX=/usr
-make
-make install
-cd ../..
+make -j$(nproc) install
+
+popd
 rm -r pmemkv

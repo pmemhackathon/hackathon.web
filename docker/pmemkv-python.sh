@@ -1,7 +1,9 @@
 #!/bin/bash -ex
 
 git clone https://github.com/pmem/pmemkv-python.git
-cd pmemkv-python
+pushd pmemkv-python
+
 python3 setup.py install
-cd ..
+
+popd
 rm -r pmemkv-python

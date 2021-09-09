@@ -1,11 +1,11 @@
 #!/bin/bash -ex
 
 git clone https://github.com/pmem/libpmemobj-cpp
-cd libpmemobj-cpp
-mkdir build
-cd build
+mkdir -p libpmemobj-cpp/build
+pushd libpmemobj-cpp/build
+
 cmake .. -DCMAKE_INSTALL_PREFIX=/usr
-make
-make install
-cd ../..
+make -j$(nproc) install
+
+popd
 rm -r libpmemobj-cpp
