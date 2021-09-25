@@ -1,6 +1,11 @@
 #
 # dockerfile for pmemhackathon, fc30 based
 #
+# Note: After making changes to files within this directory you have to rebuild
+#       the image:
+#
+# $ sudo docker build -t pmemhackathon/pmemfc30:09 -f ./docker/Dockerfile ./docker/
+#
 
 FROM fedora:30
 
