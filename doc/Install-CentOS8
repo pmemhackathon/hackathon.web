@@ -1,0 +1,203 @@
+These instructions show how to install and configure the PMem Hackathon training software on a system running CentOS 8.x.  
+These instructions were created based on the SNIA Workshop running on Equinex Metal servers, the workshop address is pmworkshop.sniapm.io.  
+It used the 2021-02-19 repo.  You can adjust your commands based on running in a different Centos environment using a different domain.
+
+0. Start with a fresh CentOS 8.2 install and update to the latest packages.  
+   If you port this SW to another distro/version, create a new checklist for
+   it and try not to change things in a way that breaks the software.
+   
+  $ sudo yum update 
+  (Note: Equinex doesn’t like updates, so don’t do this step on Equinex servers.)
+   
+1. Update the server BIOS and Persistent Memory. Refer to the server manuals for instructions and downloads. 
+(Note: Equinex is a cloud service provider, so they have the proper setup, no need to do this.)
+
+2. Create a superuser
+  $ adduer <user>
+  $ usermod -aG wheel <user>
+  $ passwd <user>
+  $ su <user>
+   
+2. Install and enable the EPEL package repository
+
+  $ sudo yum -y install epel-release
+	-- OR --
+	$ sudo dnf install epel-release
+	-- OR --
+	Follow the instructions at https://fedoraproject.org/wiki/EPEL
+	
+2a. [Optional] Update to the latest Mainline Kernel (Note: This might be more useful if your server is not fully up-to-date.)
+
+	Reference: http://elrepo.org/tiki/tiki-index.php
+	Install the 'elrepo' package repository
+	$ yum install https://www.elrepo.org/elrepo-release-8.el8.elrepo.noarch.rpm 
+	Verify the 'elrepo' repository is active and available
+	$ dnf repolist
+	Confirm the 'kernel-ml' (mainline) is available from the 'elrepo-kernel' repository
+	$ sudo dnf --disablerepo="*" --enablerepo="elrepo-kernel" list available | grep kernel-ml
+Install the latest mainline kernel
+	$ sudo dnf --enablerepo=elrepo-kernel install kernel-ml
+	
+3. Install the basics you care about, something like:
+	$ sudo yum -y install dnf git ipmctl ndctl vim-enhanced firewalld certbot
+
+4. Install development tools (Note: This isn’t totally necessary, but may be useful for building things other than the hackathon software)
+  $ sudo yum groupinstall “Development Tools”
+	
+5. Arrange for NetworkManager to treat docker networks as unmanaged:
+	$ sudo vi /etc/NetworkManager/NetworkManager.conf
+
+		[main]
+		plugins=keyfile
+
+		[keyfile]
+		unmanaged-devices=interface-name:veth*
+
+	$ sudo systemctl restart NetworkManager	
+
+6. Install docker:
+	Follow instructions from:
+	 - https://www.linuxtechi.com/install-docker-ce-centos-8-rhel-8/
+	
+	$ sudo dnf remove docker \
+                  docker-client \
+                  docker-client-latest \
+                  docker-common \
+                  docker-latest \
+                  docker-latest-logrotate \
+                  docker-logrotate \
+                  docker-selinux \
+                  docker-engine-selinux \
+                  docker-engine
+
+  $ sudo yum install -y yum-utils
+  $ sudo yum-config-manager \
+    		--add-repo \
+   		 https://download.docker.com/linux/centos/docker-ce.repo
+  $ sudo yum install docker-ce docker-ce-cli containerd.io
+	$ sudo systemctl start docker
+	$ sudo systemctl status docker
+	$ sudo systemctl enable docker
+	
+	Test Docker using the Hello-World image
+	$ sudo docker run hello-world	
+
+7. Disable SELinux extensions for Equinex deployments (yes, do this.  This bug drove us crazy for months.)
+	$ sudo vi /etc/selinux/config
+	Change the following line:
+	SELINUX=disabled
+
+8. Install and configure Firewalld. 
+	$ sudo dnf install firewalld
+	$ sudo systemctl start firewalld
+	$ sudo systemctl status firewalld
+	$ sudo systemctl enable firewalld
+	
+	(Good commands to know if you have to debug network access:)
+	$ sudo firewall-cmd --state
+	$ sudo firewall-cmd --list-ports
+	$ sudo firewall-cmd --list-services
+	
+	Allow ports 80 (HTTP) and 443 (HTTPS) through the firewall:
+	$ sudo firewall-cmd --add-service=http --permanent
+	$ sudo firewall-cmd --add-service=https --permanent	
+	
+	Reboot the host
+	$ systemctl reboot
+
+9. Configure your DNS A/AAAA record(s) with your domain registrar to point to this system
+
+10. Install and configure LetsEncrypt for HTTPS certificates:
+	$ sudo dnf install certbot
+	$ sudo certbot certonly --standalone
+	
+	Webhackathon daemon will expect certs where certbot puts them:
+		/etc/letsencrypt/live/<host>.<domain>/*.pem
+	Crontab entry to renew each month as described here:
+		https://certbot.eff.org/lets-encrypt/fedora-other	
+		
+11. Provision the Persistent Memory
+
+	$ sudo ipmctl create -goal PersistentMemoryType=AppDirect
+	$ sudo systemctl reboot
+	
+	$ sudo ndctl create-namespace --mode fsdax --continue
+(note: this will fail if there is already an fsxdax on the memory, go to the next step)
+	
+	$ sudo mkfs.ext4 /dev/pmem0
+	$ sudo mkfs.ext4 /dev/pmem1
+(note: both of these could cause warnings, create the new fs)
+	
+	$ sudo mkdir /pmem0 /pmem1 
+	
+	$ sudo mount -o dax /dev/pmem0 /pmem0
+	$ sudo mount -o dax /dev/pmem1 /pmem1
+	
+12. Add an entry to /etc/fstab for the persistent memory file systems
+
+	Identify the UUID for the pmem file systems
+	$ blkid /dev/pmem0 /dev/pmem1
+	$ sudo vi /etc/fstab
+	{PMEM0_UUID} /pmem0 ext4 dax 0 0
+	{PMEM1_UUID} /pmem1 ext4 dax 0 0
+
+	Example:
+	
+	# blkid /dev/pmem0 /dev/pmem1
+  /dev/pmem0: UUID="1c171c0c-18b0-4bdd-b250-bb14984f67ca" TYPE="ext4"
+  /dev/pmem1: UUID="9fdf200b-7208-4c66-ac3b-5ab276651d3a" TYPE="ext4"
+
+	Add the following to /etc/fstab
+	
+	UUID=1c171c0c-18b0-4bdd-b250-bb14984f67ca       /pmem0 ext4     dax     0       0
+	UUID=9fdf200b-7208-4c66-ac3b-5ab276651d3a       /pmem1 ext4     dax     0       0	
+		
+13. Add a root cron job to expire old webhackathon sessions:
+	$ sudo crontab -e 
+		@daily root find /home/hackathon/sessions -mtime +1 -type f -delete
+		
+14. Install webhackathon software:
+	$ mkdir ~/downloads && cd ~/downloads
+	
+	Clone the webhackathon web server repo in your downloads dir, eg:
+	$ git clone https://github.com/pmemhackathon/2021-02-19.web
+	
+	From the root of webhackathon repo, run scripts/create_hackathon_account, eg:
+	$ cd ~/downloads/2021-02-19.web
+	$ sudo scripts/create_hackathon_account
+	
+	Clone the latest YYYY-MM-DD code sample repo to /home/hackathon/, eg:
+  $ sudo git clone https://github.com/pmemhackathon/2021-02-19 /home/hackathon/2021-02-19
+	$ sudo chown -R hackathon:hackathon /home/hackathon/2021-02-19
+	
+	Create 200 users for the YYY-MM-DD workshop
+	(Note: we’ve found 200 users to be pretty optimal for moderate use)
+	$ sudo scripts/create_pmemusers 1 200 2021-02-19
+	
+	Set a default password
+	$ sudo scripts/enable_pmemusers 1 200 <password>
+	(Note: this will be the “request access” password for your deployment)
+	
+15. Create a 'PMDK' workshop
+
+	$ sudo mkdir /home/hackathon/workshops/pmdk
+	$ cd /home/hackathon
+
+		
+16. Start the web server
+
+	Usage: /home/hackathon <code_sample_YYY-MM-DD> <fully_qualified_domain_name>
+	
+	Example:
+	$ sudo ./webhackathon 2021-02-19 pmworkshop.sniapm.io &
+
+	Note: Create a START script for easier use
+	
+	#!/bin/bash -x
+	./webhackathon 2021-02-19 pmworkshop.sniapm.io &
+
+17. Navigate to the web server in a browser and test the environment
+
+	https://pmworkshop.sniapm.io
+	
+18. Check through all your examples and the shell and repository.
