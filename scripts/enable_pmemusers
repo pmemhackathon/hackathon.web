@@ -32,7 +32,7 @@ $Me =~ s,.*/,,;
 my $BASEID = 5000;
 
 # name of docker container to use
-my $Image = 'pmemhackathon/pmemfc30:09';
+my $Image = 'ghcr.io/pmemhackathon/fedora-30:10';
 
 # check the args
 die "usage: $Me lo hi [passwd]\n" unless $#ARGV == 1 || $#ARGV == 2;
