@@ -1,0 +1,54 @@
+- hosts: all
+  tasks:
+    - name: Create new goal configuration
+      command: ipmctl create -f -goal PersistentMemoryType=AppDirect
+
+    - name: Reboot machine in order to apply new AppDirect goal
+      reboot:
+
+    - name: Create new namespace configuration
+      command: ndctl create-namespace --mode fsdax --continue
+
+    - name: Create FS for namespaces
+      filesystem:
+        fstype: ext4
+        dev: '/dev/{{ item }}'
+        force: yes
+      loop:
+        - pmem0
+        - pmem1
+
+    - name: Create mount points
+      file:
+        path: '/{{ item }}'
+        state: directory
+      loop:
+        - pmem0
+        - pmem1
+
+    - name: Get blkid for pmem0
+      shell: |
+        blkid /dev/pmem0 | cut -d '"' -f 2
+      register: blkid0
+
+    - name: Displaying blkid for pmem0
+      debug: var=blkid0
+
+    - name: Get blkid for pmem1
+      shell: |
+        blkid /dev/pmem1 | cut -d '"' -f 2
+      register: blkid1
+
+    - name: Displaying blkid for pmem1
+      debug: var=blkid1
+
+    - name: Mount namespaces and add to fstab
+      mount:
+        path: '{{ item.path }}'
+        src: 'UUID={{ item.src }}'
+        fstype: ext4
+        opts: dax
+        state: mounted
+      loop:
+        - { path: '/pmem0', src: '{{ blkid0.stdout }}'}
+        - { path: '/pmem1', src: '{{ blkid1.stdout }}'}
