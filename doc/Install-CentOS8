@@ -37,6 +37,11 @@ It used the 2021-02-19 repo.  You can adjust your commands based on running in a
 	$ sudo dnf --disablerepo="*" --enablerepo="elrepo-kernel" list available | grep kernel-ml
 Install the latest mainline kernel
 	$ sudo dnf --enablerepo=elrepo-kernel install kernel-ml
+
+2b. [required only for Example R] Configure Soft-RoCE
+	In order to configure Soft-RoCE follow the manuals:
+	- https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/networking_guide/sec-configuring_soft-_roce or/and
+	- https://support.mellanox.com/s/article/howto-configure-soft-roce
 	
 3. Install the basics you care about, something like:
 	$ sudo yum -y install dnf git ipmctl ndctl vim-enhanced firewalld certbot
@@ -121,6 +126,16 @@ Install the latest mainline kernel
 	$ sudo ipmctl create -goal PersistentMemoryType=AppDirect
 	$ sudo systemctl reboot
 	
+11a. [Example R]
+
+	$ sudo ndctl create-namespace -f -e namespace0.0 --mode=devdax
+	$ sudo chown -R $(whoami):$(whoami) /dev/dax0.0
+	$ sudo chmod a+rw /dev/dax0.0
+
+Go to bullet 13. (Add a root cron job to expire old webhackathon sessions).
+
+11b. [examples other than Example R]
+
 	$ sudo ndctl create-namespace --mode fsdax --continue
 (note: this will fail if there is already an fsxdax on the memory, go to the next step)
 	
