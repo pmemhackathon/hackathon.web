@@ -84,6 +84,10 @@ RUN /pmemobj-cpp.sh
 COPY pmemkv.sh /
 RUN /pmemkv.sh
 
+# Prepare extra maven params
+# It's executed and its result is exported within 'pmemkv-java.sh'
+COPY setup-maven-settings.sh /setup-maven-settings.sh
+
 COPY pmemkv-java.sh /
 RUN /pmemkv-java.sh
 
@@ -102,4 +106,4 @@ RUN /memkind.sh
 COPY tz.sh /
 RUN /tz.sh
 
-RUN rm /pmdk.sh /valgrind.sh /pmemobj-cpp.sh /pmemkv.sh /pmemkv-java.sh /pmemkv-python.sh /pmemkv-nodejs.sh /pmemkv-ruby.sh /memkind.sh /tz.sh
+RUN rm /pmdk.sh /valgrind.sh /pmemobj-cpp.sh /pmemkv.sh /setup-maven-settings.sh /pmemkv-java.sh /pmemkv-python.sh /pmemkv-nodejs.sh /pmemkv-ruby.sh /memkind.sh /tz.sh
