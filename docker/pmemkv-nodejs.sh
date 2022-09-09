@@ -1,7 +1,9 @@
 #!/bin/bash -ex
 
 git clone https://github.com/pmem/pmemkv-nodejs.git
-cd pmemkv-nodejs
+pushd pmemkv-nodejs
+
 npm install
-cd ..
+
+popd
 rm -r pmemkv-nodejs

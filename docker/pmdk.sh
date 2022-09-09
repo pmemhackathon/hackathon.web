@@ -1,8 +1,10 @@
 #!/bin/bash -ex
 
 git clone https://github.com/pmem/pmdk
-cd pmdk
-make
-make install prefix=/usr
-cd ..
+pushd pmdk
+
+make -j$(nproc)
+make -j$(nproc) install prefix=/usr
+
+popd
 rm -r pmdk
