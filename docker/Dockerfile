@@ -117,4 +117,7 @@ RUN /librpma.sh
 COPY tz.sh /
 RUN /tz.sh
 
-RUN rm /pmdk.sh /valgrind.sh /pmemobj-cpp.sh /pmemkv.sh /setup-maven-settings.sh /pmemkv-java.sh /pmemkv-python.sh /pmemkv-nodejs.sh /pmemkv-ruby.sh /memkind.sh /librpma.sh /tz.sh
+COPY cachelib.sh /
+RUN /cachelib.sh
+
+RUN rm /pmdk.sh /valgrind.sh /pmemobj-cpp.sh /pmemkv.sh /setup-maven-settings.sh /pmemkv-java.sh /pmemkv-python.sh /pmemkv-nodejs.sh /pmemkv-ruby.sh /memkind.sh /librpma.sh /tz.sh /cachelib.sh
