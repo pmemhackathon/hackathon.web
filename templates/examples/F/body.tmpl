@@ -9,7 +9,7 @@ with no allocation or transaction help, there are
 some application responsibilities you must follow.
 <p class="intro">
 This example shows how to use raw access to
-persistent memory using C and <b>libpmem</b>.
+persistent memory using C and <b>libpmem2</b>.
 
 {{template "scrollToContinue"}}
 
@@ -61,22 +61,23 @@ for this is <code>CLWB</code>.  Another method is to use
 Checking all these things at application start-up time is mundane
 and not worth re-inventing for your application.  Even if you don't
 need any of the other features of PMDK like allocation or transactions,
-you will still want <b>libpmem</b> to handle these platform-specific
+you will still want <b>libpmem2</b> to handle these platform-specific
 details.
 
 {{step "Low-Level Programming in C"}}
 
 <p>
-A simple C program using <b>libpmem</b> is shown below.  Notice the
-<code>is_pmem</code> and how it is used to determine if it is safe to
-flush from user space.  To flush from user space, the function
-<tt><a href="http://pmem.io/pmdk/manpages/linux/master/libpmem/pmem_flush.3" target="_new">pmem_persist()</a></tt>
-is used.
+A simple C program using <b>libpmem2</b> is shown below. The correct mechanism for flushing the data
+into the underlaying medium is automatically chosen by <b>libpmem2</b>. To obtain the correct function for flushing
+from user space, <tt><a href="https://pmem.io/pmdk/manpages/linux/master/libpmem2/pmem2_get_persist_fn.3/" target="_new">pmem2_get_persist_fn()</a></tt>
+is used. It returns a pointer to the function, which efficiently persists the data in the range owned by the map. As can be seen in the example below,
+we call the obtained function with the provided <i>map</i> argument after our data was stored to the persistent memory (see line 93). The obtained function
+is then used to flush our data into persistence as it guarantees the data is stored durably by the time it returns.
 <p>
-<b>libpmem</b> also provides optimal ways to copy data to persistent
+<b>libpmem2</b> also provides optimal ways to copy data to persistent
 memory and make it persistent.  For example, see the call to
-<code>pmem_memcpy_persist()</code> on line 61 below.
-The <a href="http://pmem.io/pmdk/manpages/linux/master/libpmem/libpmem.7.html" target="_new">libpmem man page</a>
+<code>pmem2_get_memcpy_fn()</code> on line 108 below.
+The <a href="https://pmem.io/pmdk/libpmem2/" target="_new">libpmem2 man page</a>
 provides the full list of available functions in the library.
 <p>
 You can edit the program below and make changes if you'd like to
@@ -112,7 +113,7 @@ Now you can try running the program using the above commands.
 {{summary}}
 
 <p>
-This example showed how to use <b>libpmem</b> for low-level
+This example showed how to use <b>libpmem2</b> for low-level
 persistent memory programming.  There are no transactions
 at this level, and the programmer is responsible for keeping
 track of which ranges of persistent memory are in-use, and which
