@@ -107,7 +107,7 @@ below to build the program on the server.
 If you see any build errors, scroll back up
 to the source editing window and fix them.
 
-{{build "make kv"}}
+{{build "make python"}}
 
 <p>
 If the program built without errors, continue on to the next step below.
@@ -132,6 +132,68 @@ again and again, to experiment with different commands.
 Now you can try running the program using the above commands.
 
 {{run "./run_py.sh"}}
+
+{{step "Using libpmemkv in Java"}}
+
+<p>
+And again, the same program as above - this time implemented in Java.
+The command-line interface is identical to the C++ version.
+<p>
+You can edit the program below and make changes if you'd like to
+experiment, or just run it as-is.
+
+{{edit "PmemkvExample/src/main/java/PmemkvExample.java" "PmemkvExample/Makefile" "PmemkvExample/pom.xml"}}
+
+<p>
+Once you've made any edits to the
+above source files, click the button
+below to build the program on the server.
+If you see any build errors, scroll back up
+to the source editing window and fix them.
+
+{{build "make java"}}
+
+<p>
+If the program built without errors, continue on to the next step below.
+
+{{step "Run The Java Project"}}
+
+<p>
+This example runs three different ways,
+depending on the command-line arguments:
+<ul>
+<li><tt>java PmemkvExample pmemfile</tt> <i>(print all k-v pairs)</i>
+<li><tt>java PmemkvExample pmemfile key</tt> <i>(print the value)</i>
+<li><tt>java PmemkvExample pmemfile key value</tt> <i>(add a k-v pair)</i>
+</ul>
+<p>
+You can edit the script below and run it
+again and again, to experiment with different commands.
+
+{{edit "run_java.sh"}}
+
+<p>
+Now you can try running the program using the above commands.
+
+{{run "./run_java.sh"}}
+
+{{step "Run All Bindings Alternatively"}}
+
+<p>
+In all above versions of the example the same engine ("cmap")
+was used.  This allows to mix the execution of these programs
+to access the same data (in the same pmemfile).
+To illustrate it works smoothly see the commands below.
+<p>
+You can edit the script below and run it
+again and again, to experiment with different commands.
+
+{{edit "run_cross_lang.sh"}}
+
+<p>
+Now you can try running the program using the above commands.
+
+{{run "./run_cross_lang.sh"}}
 
 <p>
 Like all examples in this workshop, any changes you make
