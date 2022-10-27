@@ -53,6 +53,7 @@ RUN dnf update -y && dnf install -y\
 	nano\
 	ncurses-devel\
 	ndctl-devel\
+	numactl\
 	numactl-devel\
 	java-1.8.0-openjdk\
 	openssh-server\
@@ -77,8 +78,20 @@ RUN dnf update -y && dnf install -y\
 	xmvn\
  && curl -sL https://rpm.nodesource.com/setup_10.x | bash - \
  && dnf install -y nodejs \
+	daxctl-libs \
+	kmod-libs \
+	libgcc \
+	libuuid \
+	numactl-libs \
+	openssl-libs \
+	xz-libs \
+	zlib \
  && dnf debuginfo-install -y glibc \
  && dnf clean all
+ 
+COPY hwloc.spec.mk /
+COPY docker_install_hwloc.sh /
+RUN /docker_install_hwloc.sh
 
 COPY pmdk.sh /
 RUN /pmdk.sh
