@@ -53,6 +53,7 @@ RUN dnf update -y && dnf install -y\
 	nano\
 	ncurses-devel\
 	ndctl-devel\
+	numactl\
 	numactl-devel\
 	java-1.8.0-openjdk\
 	openssh-server\
@@ -79,6 +80,9 @@ RUN dnf update -y && dnf install -y\
  && dnf install -y nodejs \
  && dnf debuginfo-install -y glibc \
  && dnf clean all
+ 
+COPY docker_install_hwloc.sh /
+RUN /docker_install_hwloc.sh
 
 COPY pmdk.sh /
 RUN /pmdk.sh
@@ -117,4 +121,4 @@ RUN /librpma.sh
 COPY tz.sh /
 RUN /tz.sh
 
-RUN rm /pmdk.sh /valgrind.sh /pmemobj-cpp.sh /pmemkv.sh /setup-maven-settings.sh /pmemkv-java.sh /pmemkv-python.sh /pmemkv-nodejs.sh /pmemkv-ruby.sh /memkind.sh /librpma.sh /tz.sh
+RUN rm /pmdk.sh /valgrind.sh /pmemobj-cpp.sh /pmemkv.sh /setup-maven-settings.sh /pmemkv-java.sh /pmemkv-python.sh /pmemkv-nodejs.sh /pmemkv-ruby.sh /memkind.sh /librpma.sh /tz.sh /docker_install_hwloc.sh
