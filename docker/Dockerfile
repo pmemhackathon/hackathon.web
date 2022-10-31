@@ -108,6 +108,9 @@ RUN /pmemkv-nodejs.sh
 COPY pmemkv-ruby.sh /
 RUN /pmemkv-ruby.sh
 
+COPY docker_install_hwloc.sh /
+RUN /docker_install_hwloc.sh
+
 COPY memkind.sh /
 RUN /memkind.sh
 
@@ -117,4 +120,4 @@ RUN /librpma.sh
 COPY tz.sh /
 RUN /tz.sh
 
-RUN rm /pmdk.sh /valgrind.sh /pmemobj-cpp.sh /pmemkv.sh /setup-maven-settings.sh /pmemkv-java.sh /pmemkv-python.sh /pmemkv-nodejs.sh /pmemkv-ruby.sh /memkind.sh /librpma.sh /tz.sh
+RUN rm /pmdk.sh /valgrind.sh /pmemobj-cpp.sh /pmemkv.sh /setup-maven-settings.sh /pmemkv-java.sh /pmemkv-python.sh /pmemkv-nodejs.sh /pmemkv-ruby.sh /docker_install_hwloc.sh /memkind.sh /librpma.sh /tz.sh
