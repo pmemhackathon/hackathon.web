@@ -1,120 +1,46 @@
 #
-# dockerfile for pmemhackathon, fc30 based
+# dockerfile for pmemhackathon, centos8-stream based
 #
 # Note: After making any changes to files within this directory you have to rebuild
 #       the image:
 #
-# $ sudo docker build -t pmemhackathon/pmemfc30:09 -f ./docker/Dockerfile ./docker/
+# $ sudo docker build -t pmemhackathon/centos8:X -f ./docker/Dockerfile ./docker/
 #
 
-FROM fedora:30
+FROM quay.io/centos/centos:stream8
 
-LABEL maintainer="andy.rudoff@intel.com"
+LABEL maintainer="igor.chorazewicz@intel.com"
 
-ENV RPMA_DEPS "\
-	iproute \
-	iputils \
-	librdmacm-utils \
-	net-tools \
-	rdma-core-devel"
+RUN dnf install -y \
+	cmake \
+	sudo \
+	git \
+	tzdata \
+	vim \
+	gdb \
+	clang \
+	python36 \
+	glibc-devel.i686 \
+	autoconf \
+	automake \
+	daxctl-devel \
+	gcc \
+	gcc-c++ \
+	git-all \
+	numactl \
+	numactl-devel \
+	libtool
 
-RUN dnf update -y && dnf install -y\
-	$RPMA_DEPS\
-	autoconf\
-	automake\
-	bash-completion\
-	bc\
-	bind-utils\
-	binutils\
-	clang\
-	cmake\
-	daxctl-devel\
-	doxygen\
-	emacs\
-	file\
-	findutils\
-	fuse\
-	fuse-devel\
-	gcc\
-	gcc-c++\
-	gdb\
-	git-all\
-	glib2-devel\
-	golang\
-	lbzip2\
-	libatomic\
-	libtool\
-	libudev-devel\
-	libunwind-devel\
-	make\
-	man\
-	memkind\
-	memkind-devel\
-	nano\
-	ncurses-devel\
-	ndctl-devel\
-	numactl-devel\
-	java-1.8.0-openjdk\
-	openssh-server\
-	pandoc\
-	passwd\
-	perl-Text-Diff\
-	pkgconfig\
-	python3-devel\
-	rapidjson-devel\
-	rpm-build\
-	rpm-build-libs\
-	rpmdevtools\
-	rsync\
-	ruby-devel\
-	strace\
-	tar\
-	tbb-devel\
-	unzip\
-	vim-enhanced\
-	wget\
-	which\
-	xmvn\
- && curl -sL https://rpm.nodesource.com/setup_10.x | bash - \
- && dnf install -y nodejs \
- && dnf debuginfo-install -y glibc \
- && dnf clean all
+COPY ./cachelib-pre.sh ./cachelib-pre.sh
+RUN ./cachelib-pre.sh
 
-COPY pmdk.sh /
-RUN /pmdk.sh
+COPY ./cachelib.sh ./cachelib.sh
+RUN ./cachelib.sh
 
-COPY valgrind.sh /
-RUN /valgrind.sh
+COPY ./hwloc.sh ./hwloc.sh
+RUN ./hwloc.sh
 
-COPY pmemobj-cpp.sh /
-RUN /pmemobj-cpp.sh
+COPY ./memkind.sh ./memkind.sh
+RUN ./memkind.sh
 
-COPY pmemkv.sh /
-RUN /pmemkv.sh
-
-# Prepare extra maven params
-# It's executed and its result is exported within 'pmemkv-java.sh'
-COPY setup-maven-settings.sh /setup-maven-settings.sh
-
-COPY pmemkv-java.sh /
-RUN /pmemkv-java.sh
-
-COPY pmemkv-python.sh /
-RUN /pmemkv-python.sh
-
-COPY pmemkv-nodejs.sh /
-RUN /pmemkv-nodejs.sh
-
-COPY pmemkv-ruby.sh /
-RUN /pmemkv-ruby.sh
-
-COPY memkind.sh /
-RUN /memkind.sh
-
-COPY librpma.sh /
-RUN /librpma.sh
-
-COPY tz.sh /
-RUN /tz.sh
-
-RUN rm /pmdk.sh /valgrind.sh /pmemobj-cpp.sh /pmemkv.sh /setup-maven-settings.sh /pmemkv-java.sh /pmemkv-python.sh /pmemkv-nodejs.sh /pmemkv-ruby.sh /memkind.sh /librpma.sh /tz.sh
+RUN dnf install -y pcm
