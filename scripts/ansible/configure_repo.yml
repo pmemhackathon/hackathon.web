@@ -1,0 +1,44 @@
+- hosts: all
+  tasks:
+    - name: Create downloads directory if it does not exist
+      file:
+        path: /root/downloads
+        state: directory
+
+    - name: Clone web hackathon repo
+      git:
+        repo: "{{ web_repo_address }}"
+        dest: "/root/downloads/{{ web_repo_address.split('/')[-1] }}"
+        accept_hostkey: yes
+        force: yes
+
+    - name: Create hackathon account
+      shell:
+        cmd: "yes | scripts/create_hackathon_account"
+        chdir: "/root/downloads/{{ web_repo_address.split('/')[-1] }}"
+
+    - name: Clone code sample repo
+      git:
+          repo: "{{ code_repo_address }}"
+          dest: "/home/hackathon/{{ code_repo_address.split('/')[-1] }}"
+          accept_hostkey: yes
+          force: yes
+
+    - name: Chown repo's directory
+      command: "chown -R hackathon:hackathon /home/hackathon/{{ code_repo_address.split('/')[-1] }}"
+
+    - name: Create 200 users for the YYY-MM-DD workshop
+      shell:
+        cmd: "scripts/create_pmemusers 1 200 {{ code_repo_address.split('/')[-1] }}"
+        chdir: "/root/downloads/{{ web_repo_address.split('/')[-1] }}"
+
+    - name: Set a default password
+      shell:
+        cmd: "scripts/enable_pmemusers 1 200 {{ pmem_users_pass }}"
+        chdir: "/root/downloads/{{ web_repo_address.split('/')[-1] }}"
+
+    - name: Create workshop directory
+      file:
+        path: /home/hackathon/workshops/pmdk
+        state: directory
+        owner: hackathon

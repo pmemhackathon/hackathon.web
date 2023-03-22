@@ -1,0 +1,85 @@
+- hosts: all
+  tasks:
+    - name: Enable epel repo
+      yum:
+        name: epel-release
+        state: latest
+      when: ansible_distribution == 'CentOS'
+
+    - name: Update OS
+      yum:
+        name: '*'
+        state: latest
+      when: ansible_distribution == 'CentOS'
+
+    - name: Install additional packages
+      yum:
+        name:
+          - git
+          - ndctl
+          - vim-enhanced
+          - ndctl
+          - ndctl-libs
+          - ndctl-devel
+          - rubygem-asciidoctor
+          - firewalld
+          - certbot
+        state: latest
+      when: ansible_distribution == 'CentOS'
+
+    - name: Install ipmctl
+      yum:
+        name:
+          - https://github.com/intel/ipmctl/releases/download/v02.00.00.3885/libipmctl-02.00.00.3885-1.el8.x86_64.rpm
+          - https://github.com/intel/ipmctl/releases/download/v02.00.00.3885/libipmctl-devel-02.00.00.3885-1.el8.x86_64.rpm
+          - https://github.com/intel/ipmctl/releases/download/v02.00.00.3885/ipmctl-02.00.00.3885-1.el8.x86_64.rpm
+        state: present
+      when: ansible_distribution == 'CentOS'
+
+    - name: Arrange for NetworkManager to treat docker networks as unmanaged
+      blockinfile:
+        path: /etc/NetworkManager/NetworkManager.conf
+        block: |
+          [main]
+		      plugins=keyfile
+
+		      [keyfile]
+		      unmanaged-devices=interface-name:veth*
+      when: ansible_distribution == 'CentOS'
+
+    - name: Restart NetworkManager
+      command: systemctl restart NetworkManager
+
+    - name: Add Docker repository
+      yum_repository:
+        name: docker-ce.repo
+        description: docker-ce
+        baseurl: https://download.docker.com/linux/centos/
+      when: ansible_distribution == 'CentOS'
+
+    - name: Install Docker
+      yum:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-compose-plugin
+        state: present
+        autoremove: yes
+      when: ansible_distribution == 'CentOS'
+
+    - name: Enable Docker service
+      shell: |
+        #!/usr/bin/env bash
+        systemctl start docker
+        systemctl enable docker
+
+    - name: Add exceptions to firewall
+      shell: |
+        #!/usr/bin/env bash
+        firewall-cmd --add-service=http --permanent
+        firewall-cmd --add-service=https --permanent
+
+    - name: Reboot in order to finish installing all packages
+      reboot:
+
