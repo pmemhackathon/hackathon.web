@@ -32,7 +32,7 @@ $Me =~ s,.*/,,;
 my $BASEID = 5000;
 
 # name of docker container to use
-my $Image = 'ghcr.io/pmemhackathon/fedora-30:10';
+my $Image = 'ghcr.io/pmemhackathon/fedora-30:12';
 
 # check the args
 die "usage: $Me lo hi [passwd]\n" unless $#ARGV == 1 || $#ARGV == 2;
@@ -85,6 +85,7 @@ die "$H/img directory not found\n" unless -d "$H/img";
 die "$H/js directory not found\n" unless -d "$H/js";
 die "$H/templates directory not found\n" unless -d "$H/templates";
 die "$H/users directory not found\n" unless -d "$H/users";
+die "the jq command is missing\n" unless system("which jq > /dev/null") == 0;
 
 my $passwd = `grep '^pmemuser[0-9][0-9]*:' /etc/passwd`;
 my $nopasswd = $? >> 8;
@@ -105,7 +106,9 @@ for (my $id = $Lo; $id <= $Hi; $id++) {
 		runy("echo '$user:$Pass' | chpasswd");
 	}
 
-	runy("docker run -t -d --name=$user -v $H/users/$user/shadow:/etc/shadow -v $H/users/$user/passwd:/etc/passwd -v $H/users/$user/group:/etc/group -v $H/users/$user/home:/home/$user -v $pmemdir:/pmem -u $thisid:$thisid --hostname=container$id --workdir=/home/$user --cap-add SYS_PTRACE --restart=unless-stopped $Image");
+	runy("echo 'enable_pmemusers: PMEMUSER_ID=$id'");
+
+	runy("docker run -t -d --ulimit nofile=1024:1024 --name=$user --env PMEMUSER_ID=$id -v $H/users/$user/shadow:/etc/shadow -v $H/users/$user/passwd:/etc/passwd -v $H/users/$user/group:/etc/group -v $H/users/$user/home:/home/$user -v $pmemdir:/pmem -u $thisid:$thisid --hostname=container$id --workdir=/home/$user --cap-add SYS_PTRACE --cap-add SYS_NICE --security-opt seccomp=scripts/seccomp.json --restart=unless-stopped $Image");
 }
 
 say('done');
