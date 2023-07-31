@@ -1,0 +1,77 @@
+{{top "Memory accessing example"}}
+
+<p class="intro">
+
+Operating systems can expose PMEM or CXL memory in a number of different ways.
+On Linux, access to heterogeneous memory can be provided through memory-mapped files, a special device type (devdax), 
+or by associating the memory with a NUMA node (possibly CPU-less): https://www.kernel.org/doc/html/latest/admin-guide/mm/numaperf.html 
+
+<p>
+
+Using memory-mapped files and devdax can be a good way to isolate workloads but it requires developers to know exactly what resources they will be using.
+On the other hand, NUMA nodes can be dynamically detected by the application - this example will show how.
+
+<p>
+
+Note that NUMA node might not provide the same amount of isolation as devdax or memory-mapped files, especially when autonuma is enabled: https://documentation.suse.com/sles/15-SP1/html/SLES-all/cha-tuning-numactl.html 
+
+{{step "Using hwloc to discover available memory and it's charactersistics"}}
+
+<p>
+
+To detect system topology and memory characteristics hwloc library can be used: https://www.open-mpi.org/projects/hwloc
+
+In the script below, you can see how to list available NUMA nodes, their relative distances (which represent latency in the communication), and other attributes. Those attributes can be used by an application to decide where to put certain data, to minimize access latency or maximize bandwith.
+
+{{edit "run_hwloc.sh"}}
+
+<p>
+
+Run the example by clicking the button below:
+
+{{run "./run_hwloc.sh"}}
+
+<p>
+
+{{step "Using libnuma to perform coarse-grain memory allocation from a specific numa node"}}
+
+<p>
+
+After appropiate NUMA node is found, memory can be allocated using a combination of `mmap` and `mbind` (or `set_mepolicy`) function calls on linux.
+
+<p>
+"numa.c" shows how to use libnum library to find a numa node with highest capacity and allocate page-aligned memory from it.
+<p>
+"numa_helpers.h" contain helpers functions to find appropriate numa node and verify where specific page resides.
+
+{{edit "numa.c" "numa_helpers.h" "Makefile"}}
+
+<p>
+
+{{build "make"}}
+
+<p>
+If the programs built without errors, continue on to the next step below.
+
+{{step "Run"}}
+
+<p>
+
+Of course, you should feel free to edit the script below and run it
+again and again, to experiment with different commands.
+
+{{edit "run_examples.sh"}}
+
+<p>
+Now you can try running the program using the above commands.
+
+{{run "./run_examples.sh"}}
+
+{{summary}}
+
+<p>
+
+This example showed how to discover available memory on the system and how to utilze it using
+native linux calls.
+
+{{bottom}}

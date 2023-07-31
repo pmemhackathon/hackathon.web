@@ -1,0 +1,61 @@
+{{top "Memory accessing example"}}
+
+<p class="intro">
+
+One way of simplifying memory allocation path is using memkind. Memkind library is a user extensible heap manager built on top of jemalloc which enables control of memory characteristics and a partitioning of the heap between kinds of memory.
+It provides a high-level APIs that do not require the developer to know the exact NUMA node id. Unlike mmap, memkind can be used for fine-grain allocations.
+
+<p>
+To learn more about memkind, visit:
+<p>
+https://pmem.io/blog/2021/05/memkind-support-for-heterogeneous-memory-attributes/
+<p>
+https://github.com/memkind/memkind
+
+<p>
+
+{{step "Using memkind to allocate memory with desired charactersistics"}}
+
+<p>
+
+<p>
+"memkind.c" ilustrates how to allocate memory with desired characteristics withouth knowing the numa node id.
+<p>
+"numa_helpers.h" contain helpers functions to find appropriate numa node and verify where specific page resides.
+
+{{edit "memkind.c" "numa_helpers.h" "Makefile"}}
+
+<p>
+
+{{build "make"}}
+
+<p>
+If the programs built without errors, continue on to the next step below.
+
+{{step "Run"}}
+
+<p>
+
+Of course, you should feel free to edit the script below and run it
+again and again, to experiment with different commands.
+
+{{edit "run_examples.sh"}}
+
+<p>
+Now you can try running the program using the above commands.
+
+{{run "./run_examples.sh"}}
+
+{{step "Memory tiering with memkind"}}
+
+<p>
+In some cases, an application might want to levarage a few types of memory simultaneously. If there are no requirements for the access speed of the data explcit auto-tiering can be used: https://pmem.io/blog/2022/06/memory-tiering-part-1/
+Feel free edit the previous example and test the code from the blog post.
+
+{{summary}}
+
+<p>
+
+This example showed how to allocate memory with different characteristics using memkind.
+
+{{bottom}}

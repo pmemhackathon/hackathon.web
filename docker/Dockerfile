@@ -11,15 +11,7 @@ FROM fedora:30
 
 LABEL maintainer="andy.rudoff@intel.com"
 
-ENV RPMA_DEPS "\
-	iproute \
-	iputils \
-	librdmacm-utils \
-	net-tools \
-	rdma-core-devel"
-
 RUN dnf update -y && dnf install -y\
-	$RPMA_DEPS\
 	autoconf\
 	automake\
 	bash-completion\
@@ -53,6 +45,7 @@ RUN dnf update -y && dnf install -y\
 	nano\
 	ncurses-devel\
 	ndctl-devel\
+	numactl\
 	numactl-devel\
 	java-1.8.0-openjdk\
 	openssh-server\
@@ -108,13 +101,13 @@ RUN /pmemkv-nodejs.sh
 COPY pmemkv-ruby.sh /
 RUN /pmemkv-ruby.sh
 
+COPY hwloc.sh /
+RUN /hwloc.sh
+
 COPY memkind.sh /
 RUN /memkind.sh
-
-COPY librpma.sh /
-RUN /librpma.sh
 
 COPY tz.sh /
 RUN /tz.sh
 
-RUN rm /pmdk.sh /valgrind.sh /pmemobj-cpp.sh /pmemkv.sh /setup-maven-settings.sh /pmemkv-java.sh /pmemkv-python.sh /pmemkv-nodejs.sh /pmemkv-ruby.sh /memkind.sh /librpma.sh /tz.sh
+RUN rm /pmdk.sh /valgrind.sh /pmemobj-cpp.sh /pmemkv.sh /setup-maven-settings.sh /pmemkv-java.sh /pmemkv-python.sh /pmemkv-nodejs.sh /pmemkv-ruby.sh /memkind.sh /tz.sh /hwloc.sh
