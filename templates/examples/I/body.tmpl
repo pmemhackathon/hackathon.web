@@ -1,0 +1,77 @@
+{{top "Allocation tiering based on memory-characteristics"}}
+
+<p class="intro">
+Different memory types can have different performance characteristics. They
+can be distinguished by values of their latency, capacity, or bandwidth.
+In programming with allocation tiering in mind we care about the performance
+characteristics of memory, not the exact media types.
+<p class="intro">
+In this example, an array of data and a hashmap are allocated to different
+memory types to effectively use the available memory.
+
+{{template "scrollToContinue"}}
+
+<p>
+When utilising a server with high capacity memory alongside standard memory,
+allocating memory randomly in two types of memory which have different
+performance characteristics might not be a good idea. Typically, a memory
+with high capacity have higher latency than standard memory. Because of that,
+the application may benefit from having some data allocated explicitly on
+memory with low latency. On the other hand, to utilise the whole available
+memory capacity in a server, we might allocate specific data always in
+a high capacity memory.
+<p>
+In this example, allocations of an array of data and a hashtable for accessing
+that data are made with the usage of the memkind library. Splitting
+allocations between a low latency memory and a high capacity memory is achieved
+by utlising two kinds (you can think of them as an additional parameter to
+<code>malloc()</code>): <b>MEMKIND_LOWEST_LATENCY_LOCAL</b> and
+<b>MEMKIND_HIGHEST_CAPACITY</b>.
+It's reasonable to have a reliably fast access to the hashtable. Also searching
+for data might benefit from keys being allocated in a low latency memory.
+To achieve this, the <b>MEMKIND_LOWEST_LATENCY_LOCAL</b> kind is used for
+allocating the hashtable and data keys.
+The memory with the lowest latency be allocated.
+Data that is being accessed from the hashtable have bigger size relative to
+a key size. Because of that, that data is a perfect fit for utilising the
+advantage of high capacity media. <b>MEMKIND_HIGHEST_CAPACITY</b> kind allows to
+explicitly allocate memory from this memory type.
+
+{{step "Using memkind for allocations based on memory characteristics"}}
+
+<p>
+This program allocates hashmap, keys, and data using different memory
+characteristics for explicit allocations on specific media types.
+Note that functions highest_capacity_malloc() and
+<code>lowest_latency_malloc()</code> are wrappers for allocating with the usage
+of memkind and kinds based on performance characteristics retrieved from
+the hwloc library (memkind's dependency).
+<p>
+Complete hashmap implementation is in hashmap.c file (and a respective header
+file).
+
+{{edit "hmat.c" "hashmap.c" "hashmap.h" "Makefile"}}
+
+<p>
+Click the button below to build the program.
+
+{{build "make"}}
+
+If the program compiled without errors, run the example by clicking
+the button below:
+
+{{run "./run.sh"}}
+
+{{summary}}
+
+<p>
+This example shows how memkind can be useful in programming based on the media
+characteristics. Developer doesn't have to know what setup is available on
+the machine the code is running on. In fact, the code will work when the only
+memory type available is DRAM, too. One may see these memkind kinds as a hint
+for the allocator as to whether allocated data should have fast access, huge
+storage or (not used in this example) fast bandwidth. You can also play with
+other memkind kinds listed
+<a href="https://pmem.io/memkind/manpages/memkind.3/#kind">here</a>.
+
+{{bottom}}
